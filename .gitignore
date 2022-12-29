@@ -9,3 +9,6 @@ thumbs.db
 .DS_Store
 .idea
 
+whisper_models/*
+!whisper_models/.gitkeep
+data
