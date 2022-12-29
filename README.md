@@ -1,6 +1,8 @@
 # Bolt
 
-> Translation is not possible
+This browser based project let's the whisper model transcribe incoming audio in realtime.
+
+> Translation is not possible(maybe added later)
 
 ## Openai's Whisper
 
@@ -25,6 +27,12 @@ Install the requirements.txt with pip. No need for ffmpeg.
 pip3 install -r requirements.txt
 ```
 
+To start
+
+```bash
+python3 main.py
+```
+
 TODO:
 
 1. Docker file for the frontend and backend
@@ -41,12 +49,4 @@ There are five model sizes, four with English-only versions, offering speed and 
 | medium |   769 M    |    `medium.en`     |      `medium`      |     ~5 GB     |      ~2x       |
 | large  |   1550 M   |        N/A         |      `large`       |    ~10 GB     |       1x       |
 
-Whisper's performance varies widely depending on the language. The figure below shows a WER breakdown by languages of Fleurs dataset, using the `large-v2` model. More WER and BLEU scores corresponding to the other models and datasets can be found in Appendix D in [the paper](https://arxiv.org/abs/2212.04356).
-
-![WER breakdown by language](language-breakdown.svg)
-
-## Command-line usage
-
-The following command will the start the whole server:
-
-    python main.py
+[more information about the models](model-card.md)
