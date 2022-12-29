@@ -3,8 +3,11 @@ from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, Med
 import json
 import uuid
 import os
+import inspect
+from pprint import pprint
 
 pcs = set()
+
 
 async def offer(sdp, type):
     offer = RTCSessionDescription(sdp, type)
@@ -14,12 +17,14 @@ async def offer(sdp, type):
     pcs.add(pc)
 
 
+
     # prepare local media
     recorder = MediaRecorder(os.path.join(os.getcwd(), "demo-instruct.wav"))
 
     @pc.on("datachannel")
     def on_datachannel(channel):
-        @channel.on("datachannel")
+
+        @channel.on("upstream")
         def on_message(message):
             if isinstance(message, str) and message.startswith("ping"):
                 channel.send("pong" + message[4:])
@@ -32,11 +37,17 @@ async def offer(sdp, type):
             pcs.discard(pc)
 
     @pc.on("track")
-    def on_track(track):
+    async def on_track(track: MediaStreamTrack):
         print("Track %s received", track.kind)
 
         if track.kind == "audio":
             recorder.addTrack(track)
+            for i in range(10000):
+                frame = await track.recv()
+                x = frame.to_ndarray()
+                
+                if i % 100 == 0:
+                    print(i, x.shape)
 
         @track.on("ended")
         async def on_ended():

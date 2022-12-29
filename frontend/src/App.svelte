@@ -12,7 +12,7 @@
     <img src={boltLogo} class="logo boltlogo" alt="Bolt Logo" />
   </imagediv>
   <p class="twitterlink">
-    BY: <a href="https://twitter.com/gslaller" target="_blank" rel="noreferrer"
+    <a href="https://twitter.com/gslaller" target="_blank" rel="noreferrer"
       >twitter:@gslaller</a
     >
   </p>
@@ -68,6 +68,9 @@
 
   imagediv {
     margin-top: 1rem;
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
   }
 
   h1 {

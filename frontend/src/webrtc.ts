@@ -1,37 +1,38 @@
 import { sendOffer } from "./requests"
 
-export async function createoutboundconnection(stream: MediaStream): Promise<[RTCPeerConnection, RTCDataChannel]> {
-    let peer = new RTCPeerConnection({
-        iceServers: [
-            {
-                urls: "stun:stun.l.google.com:19302"
-            }
-        ]
-    })
-    peer.addTrack((stream.getAudioTracks())[0], stream)
-    let channel = peer.createDataChannel("datachannel")
+export async function createoutboundconnection(stream: MediaStream): Promise<RTCPeerConnection> {
+    return new Promise((resolve, reject) => {
+        console.log("creating outbound connection")
+        let peer = new RTCPeerConnection({
+            iceServers: [
+                {
+                    urls: "stun:stun.l.google.com:19302"
+                }
+            ]
+        })
+        peer.addTrack((stream.getAudioTracks())[0], stream)
 
-    peer.createOffer().then(offer => {
-        peer.setLocalDescription(offer)
+        peer.createOffer().then(offer => {
+            peer.setLocalDescription(offer)
+        })
 
-    })
-
-    peer.onconnectionstatechange = () => {
-        console.log("connection state changed to " + peer.connectionState)
-    }
-
-
-    peer.onicecandidate = (event) => {
-        if (event.candidate) {
-            let SDP = peer.localDescription;
-            if (SDP !== null) {
-
-                sendOffer(SDP).then(answer => {
-                    peer.setRemoteDescription(answer)
-                });
-            }
+        peer.onconnectionstatechange = () => {
+            console.log("connection state changed to " + peer.connectionState)
         }
-    };
 
-    return [peer, channel]
+
+        peer.onicecandidate = async (event) => {
+            if (peer.iceGatheringState === "complete") {
+                let SDP = peer.localDescription;
+                if (SDP !== null) {
+
+                    sendOffer(SDP).then(async answer => {
+                        await peer.setRemoteDescription(answer)
+                        resolve(peer)
+                    });
+                }
+            }
+        };
+
+    });
 }

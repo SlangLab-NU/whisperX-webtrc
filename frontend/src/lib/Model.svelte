@@ -5,11 +5,8 @@
   async function handleClick() {
     const model =
       document.querySelector<HTMLSelectElement>("select[name=model]").value;
-    const chunk_size = +document.querySelector<HTMLInputElement>(
-      "input[name=chunk_size]"
-    ).value;
 
-    let ans = await initModel({ model, chunk_size });
+    let ans = await initModel({ model });
     connection.update((state) => ({
       ...state,
       modelset: ans,
@@ -18,7 +15,7 @@
 </script>
 
 <main>
-  <h2>Model Parameters</h2>
+  <h2>Model Parameters:</h2>
 
   <selectionline>
     <label for="model">Model:</label>
@@ -42,20 +39,15 @@
       disabled
     />
 
-    <label for="chunks_size">Chunk Size (ms)</label>
-    <input
-      type="number"
-      name="chunk_size"
-      min="50"
-      max="1000"
-      step="50"
-      value="100"
-    />
     <button id="start" on:click={handleClick}>Set</button>
   </selectionline>
 </main>
 
 <style>
+  main {
+    background-color: #00000011;
+    padding: 1rem;
+  }
   select {
     border-radius: 0.5rem;
     font-size: large;

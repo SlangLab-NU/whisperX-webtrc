@@ -1,6 +1,6 @@
 const URL = "http://localhost:5000"
 
-export async function initModel(obj: { model: string, chunk_size: number }): Promise<string> {
+export async function initModel(obj: { model: string }): Promise<string> {
     let response = await fetch(URL + "/initmodel", {
         method: "POST",
         headers: {

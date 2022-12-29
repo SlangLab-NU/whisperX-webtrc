@@ -4,6 +4,8 @@ This browser based project let's the whisper model transcribe incoming audio in 
 
 > Translation is not possible(maybe added later)
 
+![Screenshot](data/screenshot.png)
+
 ## Openai's Whisper
 
 [[Blog]](https://openai.com/blog/whisper)

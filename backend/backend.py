@@ -25,7 +25,6 @@ async def main():
 
 @app.post("/initmodel")
 async def initmodel(item: dict = Body(...)):
-    chunk_size = item["chunk_size"]
     model = item["model"]
 
     return {"model": model}
