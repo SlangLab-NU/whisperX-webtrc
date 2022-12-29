@@ -1,29 +1,41 @@
-from flask import Flask, request
-from flask_cors import CORS
-import aiortc
-from typing import TypedDict
 from pprint import pprint
+from fastapi import FastAPI, Body
+from fastapi.middleware.cors import CORSMiddleware
+import webrtc
+import uvicorn
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-@app.route("/")
-def hello():
-    return "Hello"
+origins_allowed = [
+    "http://localhost:5173",
+]
 
-
-class InitRequest(TypedDict):
-    model: str
-    temperature: float
-    top_p: float
-    chunk_size: int
-
-#get param from the url
-@app.route("/initmodel", methods=['POST'])
-def hello_name():
-    req_data: InitRequest = request.get_json(force=True)
-    pprint(req_data)
-    return req_data['model']
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins_allowed,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-app.run()
+@app.get("/ping")
+async def main():
+    return {"ping": "pong"}
+
+@app.post("/initmodel")
+async def initmodel(item: dict = Body(...)):
+    chunk_size = item["chunk_size"]
+    model = item["model"]
+
+    return {"model": model}
+
+@app.post("/offer")
+async def offer(item: dict = Body(...)):
+    sdp = item["sdp"]
+    type = item["type"]
+    resp = await webrtc.offer(sdp, type)
+    return resp
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5000)

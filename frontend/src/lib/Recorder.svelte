@@ -1,30 +1,38 @@
 <script lang="ts">
-  export let msg = "Hello World!";
-  export let start = false;
+  import { connection } from "../store";
+  import { get } from "svelte/store";
+  import { createoutboundconnection } from "../webrtc";
+
+  let webrtc: RTCPeerConnection;
+  let dataChannel: RTCDataChannel;
+  let stream: MediaStream;
 
   async function handleStart() {
-    // get audio stream from getUserMedia
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    });
+    let { backendAvailable, modelset } = get(connection);
 
+    if (backendAvailable && modelset !== "") {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+
+      let audio = document.querySelector("audio");
+      audio.srcObject = stream;
+      [webrtc, dataChannel] = await createoutboundconnection(stream);
+    }
+  }
+
+  function handleStop() {
+    webrtc.close();
+    stream.getTracks().forEach((track) => track.stop());
     let audio = document.querySelector("audio");
-    audio.srcObject = stream;
-
-    let response = await fetch("http://localhost:5000");
-    let text = await response.text();
-    alert(text);
+    audio.srcObject = null;
   }
 </script>
 
 <main>
-  {#if start}
-    <h1>{msg}</h1>
-  {:else}
-    <h1>Not started</h1>
-  {/if}
   <button on:click={handleStart}>Start</button>
+  <button on:click={handleStop}>Stop</button>
   <audio controls autoplay>
     Your browser does not support the audio element.
   </audio>

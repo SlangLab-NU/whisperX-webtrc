@@ -3,6 +3,7 @@
   import openaiLogo from "./assets/openai.png";
   import Model from "./lib/Model.svelte";
   import Recorder from "./lib/Recorder.svelte";
+  import State from "./lib/State.svelte";
 </script>
 
 <main>
@@ -43,6 +44,8 @@
     efficient and viable for real time applicationsviable for real time
     inference. Docker image is also available.
   </p>
+
+  <State />
 
   <Model />
   <Recorder />

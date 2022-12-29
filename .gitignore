@@ -12,3 +12,5 @@ thumbs.db
 whisper_models/*
 !whisper_models/.gitkeep
 data
+
+*.wav
