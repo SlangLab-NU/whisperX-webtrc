@@ -1,29 +1,58 @@
 <script lang="ts">
   import { initModel } from "../requests";
-  import { AvailableModels, connection } from "../store";
+  import { connection, updateState } from "../store";
+  import AvailableModels from "../models.json";
+  import AvailableLangs from "../lang.json";
+  import { get } from "svelte/store";
 
-  async function handleClick() {
-    const model =
-      document.querySelector<HTMLSelectElement>("select[name=model]").value;
+  let tempModel = get(connection).model;
+  let tempLang = get(connection).language;
 
-    let ans = await initModel({ model });
-    connection.update((state) => ({
-      ...state,
-      modelset: ans,
-    }));
+  $: shouldFetch =
+    $connection.language !== tempLang || $connection.model !== tempModel;
+
+  $: langNotSelectable = tempModel.endsWith(".en");
+
+  async function handleSubmit() {
+    let { model, language } = await initModel({
+      model: tempModel,
+      language: tempLang,
+    });
+    updateState({ model, language });
+  }
+
+  function handleModelChange(event: Event) {
+    tempModel = (event.target as HTMLSelectElement).value;
+  }
+
+  function handleLangChange(event: Event) {
+    tempLang = (event.target as HTMLSelectElement).value;
   }
 </script>
 
 <main>
   <h2>Model Parameters:</h2>
-
   <selectionline>
     <label for="model">Model:</label>
-
-    <select name="model">
+    <select name="model" on:change={handleModelChange}>
       {#each AvailableModels as model}
-        <option value={model.value} selected={model.value === "base"}
+        <option value={model.value} selected={model.value === tempModel}
           >{model.label}</option
+        >
+      {/each}
+    </select>
+
+    <label for="lang">Language:</label>
+    <select
+      name="lang"
+      disabled={langNotSelectable}
+      on:change={handleLangChange}
+    >
+      {#each AvailableLangs as lang}
+        <option
+          value={lang.value}
+          selected={lang.value === (langNotSelectable ? "en" : tempLang)}
+          >{lang.label}</option
         >
       {/each}
     </select>
@@ -39,7 +68,7 @@
       disabled
     />
 
-    <button id="start" on:click={handleClick}>Set</button>
+    <button on:click={handleSubmit} disabled={!shouldFetch}>Set</button>
   </selectionline>
 </main>
 
@@ -47,7 +76,22 @@
   main {
     background-color: #00000011;
     padding: 1rem;
+    padding-top: 0.2rem;
+    border-radius: 0.3rem;
   }
+
+  button:hover {
+    background-color: white;
+    color: #535bf2;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    background-color: #00000011;
+    color: #00000011;
+    cursor: not-allowed;
+  }
+
   select {
     border-radius: 0.5rem;
     font-size: large;
@@ -78,11 +122,5 @@
     background-color: #535bf2;
     color: white;
     font-weight: 600;
-  }
-
-  button:hover {
-    background-color: white;
-    color: #535bf2;
-    cursor: pointer;
   }
 </style>

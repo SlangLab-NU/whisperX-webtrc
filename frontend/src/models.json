@@ -1,0 +1,38 @@
+[
+  {
+    "value": "tiny",
+    "label": "Tiny"
+  },
+  {
+    "value": "tiny.en",
+    "label": "Tiny English"
+  },
+  {
+    "value": "base",
+    "label": "Base"
+  },
+  {
+    "value": "base.en",
+    "label": "Base English"
+  },
+  {
+    "value": "small",
+    "label": "Small"
+  },
+  {
+    "value": "small.en",
+    "label": "Small English"
+  },
+  {
+    "value": "medium",
+    "label": "Medium"
+  },
+  {
+    "value": "medium.en",
+    "label": "Medium English"
+  },
+  {
+    "value": "large",
+    "label": "Large"
+  }
+]

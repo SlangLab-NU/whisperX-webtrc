@@ -16,10 +16,8 @@ async def offer(sdp, type):
     pc_id = "PeerConnection(%s)" % uuid.uuid4()
     pcs.add(pc)
 
-
-
     # prepare local media
-    recorder = MediaRecorder(os.path.join(os.getcwd(), "demo-instruct.wav"))
+    recorder = MediaRecorder(os.path.join(os.getcwd(), "data/temp.wav"))
 
     @pc.on("datachannel")
     def on_datachannel(channel):
@@ -42,12 +40,9 @@ async def offer(sdp, type):
 
         if track.kind == "audio":
             recorder.addTrack(track)
-            for i in range(10000):
-                frame = await track.recv()
-                x = frame.to_ndarray()
-                
-                if i % 100 == 0:
-                    print(i, x.shape)
+            # for i in range(10000):
+            #     frame = await track.recv()
+            #     x = frame.to_ndarray()
 
         @track.on("ended")
         async def on_ended():

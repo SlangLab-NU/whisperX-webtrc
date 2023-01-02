@@ -75,7 +75,7 @@ def transcribe(
         if torch.cuda.is_available():
             warnings.warn("Performing inference on CPU when CUDA is available")
         if dtype == torch.float16:
-            warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+            # warnings.warn("FP16 is not supported on CPU; using FP32 instead")
             dtype = torch.float32
 
     if dtype == torch.float32:
@@ -83,6 +83,7 @@ def transcribe(
 
     mel = log_mel_spectrogram(audio)
 
+    # detect language if not specified
     if decode_options.get("language", None) is None:
         if not model.is_multilingual:
             decode_options["language"] = "en"
@@ -99,6 +100,8 @@ def transcribe(
     task = decode_options.get("task", "transcribe")
     tokenizer = get_tokenizer(model.is_multilingual, language=language, task=task)
 
+    # what is this fallback?
+    # if the model fails to decode a segment, it will try again with a different temperature
     def decode_with_fallback(segment: torch.Tensor) -> DecodingResult:
         temperatures = [temperature] if isinstance(temperature, (int, float)) else temperature
         decode_result = None
@@ -178,6 +181,7 @@ def transcribe(
             segment_duration = segment.shape[-1] * HOP_LENGTH / SAMPLE_RATE
 
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
+            # segment are still the mel spectrogram
             result: DecodingResult = decode_with_fallback(segment)
             tokens = torch.tensor(result.tokens)
 

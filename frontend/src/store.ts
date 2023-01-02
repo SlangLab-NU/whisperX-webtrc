@@ -1,40 +1,35 @@
-import { writable, derived } from 'svelte/store'
+import { writable } from 'svelte/store'
 import { ping } from './requests'
-import type { ECDHKeyFormat } from 'crypto';
 
-// create enum in typescript
-export const AvailableModels = [
-    { value: "tiny", label: "Tiny" },
-    { value: "tiny.en", label: "Tiny English" },
-    { value: "base", label: "Base" },
-    { value: "base.en", label: "Base English" },
-    { value: "small", label: "Small" },
-    { value: "small.en", label: "Small English" },
-    { value: "medium", label: "Medium" },
-    { value: "medium.en", label: "Medium English" },
-    { value: "large", label: "Large" },
-];
-
-export const connection = writable<{
+export type conn = {
     backendAvailable: boolean,
-    modelset: string,
+    model: string,
     webrtc: boolean,
-}>({
+    filename: string,
+    language: string,
+}
+
+export const connection = writable<conn>({
     backendAvailable: false,
-    modelset: "",
     webrtc: false,
+    model: "tiny",
+    filename: "",
+    language: "en",
 });
 
+export const updateState = (obj: Partial<conn>) => {
+    console.log("called updateState");
+    connection.update((value) => ({ ...value, ...obj }));
+}
 
-let call = () => setTimeout(() => {
+let call = (time) => setTimeout(() => {
     ping().then((res) => {
         if (res) {
             connection.update((value) => ({ ...value, backendAvailable: true }));
         } else {
-            call()
+            call(1000)
         }
     })
-}, 1000)
-call();
+}, time);
 
-
+call(0);

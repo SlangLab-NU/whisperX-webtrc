@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 from typing import Iterable, Optional
+import time
 
 import numpy as np
 import torch
@@ -79,6 +80,8 @@ class MultiHeadAttention(nn.Module):
             v = self.value(x if xa is None else xa)
         else:
             # for cross-attention, calculate keys and values once and reuse in subsequent calls.
+
+            
             k = kv_cache[self.key]
             v = kv_cache[self.value]
 
@@ -117,13 +120,13 @@ class ResidualAttentionBlock(nn.Module):
     def forward(
         self,
         x: Tensor,
-        xa: Optional[Tensor] = None,
+        x_audioencoder: Optional[Tensor] = None,
         mask: Optional[Tensor] = None,
         kv_cache: Optional[dict] = None,
     ):
         x = x + self.attn(self.attn_ln(x), mask=mask, kv_cache=kv_cache)
         if self.cross_attn:
-            x = x + self.cross_attn(self.cross_attn_ln(x), xa, kv_cache=kv_cache)
+            x = x + self.cross_attn(self.cross_attn_ln(x), x_audioencoder, kv_cache=kv_cache)
         x = x + self.mlp(self.mlp_ln(x))
         return x
 
@@ -145,17 +148,24 @@ class AudioEncoder(nn.Module):
         x : torch.Tensor, shape = (batch_size, n_mels, n_ctx)
             the mel spectrogram of the audio
         """
+        inps_sum = x.sum(dim=1)
+        mask = inps_sum == 0.0
+
         x = F.gelu(self.conv1(x))
         x = F.gelu(self.conv2(x))
         x = x.permute(0, 2, 1)
+
+        mask = mask.unsqueeze(2).repeat(1, 1, x.shape[-2])
+        mask = mask[0, ::2, :]
 
         assert x.shape[1:] == self.positional_embedding.shape, "incorrect audio shape"
         x = (x + self.positional_embedding).to(x.dtype)
 
         for block in self.blocks:
-            x = block(x)
+            x = block(x, mask=mask )
 
         x = self.ln_post(x)
+
         return x
 
 
@@ -174,7 +184,7 @@ class TextDecoder(nn.Module):
         mask = torch.empty(n_ctx, n_ctx).fill_(-np.inf).triu_(1)
         self.register_buffer("mask", mask, persistent=False)
 
-    def forward(self, x: Tensor, xa: Tensor, kv_cache: Optional[dict] = None):
+    def forward(self, x: Tensor, x_audioencoder: Tensor, kv_cache: Optional[dict] = None):
         """
         x : torch.LongTensor, shape = (batch_size, <= n_ctx)
             the text tokens
@@ -183,10 +193,10 @@ class TextDecoder(nn.Module):
         """
         offset = next(iter(kv_cache.values())).shape[1] if kv_cache else 0
         x = self.token_embedding(x) + self.positional_embedding[offset : offset + x.shape[-1]]
-        x = x.to(xa.dtype)
+        x = x.to(x_audioencoder.dtype)
 
         for block in self.blocks:
-            x = block(x, xa, mask=self.mask, kv_cache=kv_cache)
+            x = block(x, x_audioencoder, mask=self.mask, kv_cache=kv_cache)
 
         x = self.ln(x)
         logits = (x @ torch.transpose(self.token_embedding.weight.to(x.dtype), 0, 1)).float()
@@ -248,6 +258,7 @@ class Whisper(nn.Module):
         hooks = []
 
         def save_to_cache(module, _, output):
+            # The second contition is if
             if module not in cache or output.shape[1] > self.decoder.positional_embedding.shape[0]:
                 cache[module] = output  # save as-is, for the first token or cross attention
             else:

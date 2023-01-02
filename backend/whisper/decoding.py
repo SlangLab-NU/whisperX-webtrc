@@ -618,7 +618,9 @@ class DecodingTask:
         tokenizer: Tokenizer = self.tokenizer
         n_audio: int = mel.shape[0]
 
+        # The AudioEncoder
         audio_features: Tensor = self._get_audio_features(mel)  # encoder forward pass
+
         tokens: Tensor = torch.tensor([self.initial_tokens]).repeat(n_audio, 1)
 
         # detect language if requested, overwriting the language token

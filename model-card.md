@@ -4,7 +4,7 @@ This is the official codebase for running the automatic speech recognition (ASR)
 
 Following [Model Cards for Model Reporting (Mitchell et al.)](https://arxiv.org/abs/1810.03993), we're providing some information about the automatic speech recognition model. More information on how these models were trained and evaluated can be found [in the paper](https://arxiv.org/abs/2212.04356).
 
-![WER breakdown by language](data/language-breakdown.svg)
+![WER breakdown by language](assets/language-breakdown.svg)
 
 ## Model Details
 
