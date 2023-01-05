@@ -11,21 +11,18 @@ pcs = set()
 
 async def offer(sdp, type):
     offer = RTCSessionDescription(sdp, type)
-
     pc = RTCPeerConnection()
     pc_id = "PeerConnection(%s)" % uuid.uuid4()
     pcs.add(pc)
 
-    # prepare local media
-    recorder = MediaRecorder(os.path.join(os.getcwd(), "data/temp.wav"))
-
     @pc.on("datachannel")
     def on_datachannel(channel):
-
-        @channel.on("upstream")
+        @channel.on("message")
         def on_message(message):
-            if isinstance(message, str) and message.startswith("ping"):
-                channel.send("pong" + message[4:])
+            channel.send(message)
+
+    # prepare local media
+    recorder = MediaRecorder("data/webrtc.wav")
 
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
@@ -36,13 +33,15 @@ async def offer(sdp, type):
 
     @pc.on("track")
     async def on_track(track: MediaStreamTrack):
-        print("Track %s received", track.kind)
+        pprint(dir(track))
+        print("Track %s received, state %s", track.kind, track.readyState)
 
         if track.kind == "audio":
             recorder.addTrack(track)
             # for i in range(10000):
             #     frame = await track.recv()
             #     x = frame.to_ndarray()
+
 
         @track.on("ended")
         async def on_ended():

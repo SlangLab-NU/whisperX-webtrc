@@ -3,6 +3,7 @@
   import { get } from "svelte/store";
   import { createoutboundconnection } from "../webrtc";
   import { upload } from "../requests";
+  import Developer from "./Developer.svelte";
 
   let webrtc: RTCPeerConnection;
   let dataChannel: RTCDataChannel;
@@ -80,6 +81,7 @@
     on:click={() => (content = "Mic")}>Microphone</button
   >
 </main>
+<Developer />
 
 <style>
   main {

@@ -43,7 +43,7 @@ async def initmodel(item: dict = Body(...)):
 async def offer(item: dict = Body(...)):
     sdp = item["sdp"]
     type = item["type"]
-    resp = await webrtc.offer(sdp, type)
+    resp = await webrtc.offer(sdp, type) 
     return resp
 
 @app.post("/upload")
