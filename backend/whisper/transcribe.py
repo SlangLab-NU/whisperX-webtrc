@@ -11,6 +11,7 @@ from .audio import SAMPLE_RATE, N_FRAMES, HOP_LENGTH, pad_or_trim, log_mel_spect
 from .decoding import DecodingOptions, DecodingResult
 from .tokenizer import LANGUAGES, TO_LANGUAGE_CODE, get_tokenizer
 from .utils import exact_div, format_timestamp, optional_int, optional_float, str2bool, write_txt, write_vtt, write_srt
+import json
 
 if TYPE_CHECKING:
     from .model import Whisper
@@ -26,6 +27,7 @@ def transcribe(
     logprob_threshold: Optional[float] = -1.0,
     no_speech_threshold: Optional[float] = 0.6,
     condition_on_previous_text: bool = True,
+    webrtcsend_method = None,
     **decode_options,
 ):
     """
@@ -208,6 +210,11 @@ def transcribe(
                     end_timestamp_position = (
                         sliced_tokens[-1].item() - tokenizer.timestamp_begin
                     )
+
+                    if webrtcsend_method:
+                        decoded = tokenizer.decode_with_timestamps(sliced_tokens)
+                        decoded_json = json.dumps(decoded)
+                        webrtcsend_method(decoded_json)
                     add_segment(
                         start=timestamp_offset + start_timestamp_position * time_precision,
                         end=timestamp_offset + end_timestamp_position * time_precision,
@@ -229,6 +236,11 @@ def transcribe(
                     last_timestamp_position = timestamps[-1].item() - tokenizer.timestamp_begin
                     duration = last_timestamp_position * time_precision
 
+                if webrtcsend_method:
+                    decoded = tokenizer.decode_with_timestamps(tokens)
+                    decoded_json = json.dumps(decoded)
+                    webrtcsend_method(decoded_json)
+                
                 add_segment(
                     start=timestamp_offset,
                     end=timestamp_offset + duration,

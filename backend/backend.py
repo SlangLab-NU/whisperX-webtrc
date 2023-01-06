@@ -4,6 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import whisper
 import webrtc
 import uvicorn
+import asyncio
+import time
+import nest_asyncio
+nest_asyncio.apply()
 
 app = FastAPI()
 
@@ -55,6 +59,18 @@ async def upload(file: UploadFile = File(...)):
     
     return {"filename": filename}
 
+async def Transribe(filename, language, webrtcdatachannel):
+
+    async def flush(channel):
+        await channel._RTCDataChannel__transport._data_channel_flush()
+        await channel._RTCDataChannel__transport._transmit()
+    
+    def on_message(message):
+        webrtcdatachannel.send(message)
+        asyncio.get_event_loop().run_until_complete(flush(webrtcdatachannel))
+
+    result = model.transcribe("data/"+filename, language=language, webrtcsend_method=on_message)
+
 @app.post("/infer")
 async def infer(item: dict = Body(...)):
     filename = item["filename"]
@@ -63,8 +79,8 @@ async def infer(item: dict = Body(...)):
     else:
         language = preffered_lang
 
-    result = model.transcribe("data/"+filename, language=language) 
-    return result["segments"]
+    asyncio.create_task(Transribe(filename, language, webrtc.webrtcdatachannel))
+    return []
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)

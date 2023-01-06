@@ -21,9 +21,6 @@ export async function createoutboundconnection(stream?: MediaStream): Promise<[R
         channel.onopen = () => {
             console.log("data channel opened")
         }
-        channel.onmessage = (event) => {
-            console.log("message received: " + event.data)
-        }
 
         peer.createOffer().then(offer => {
             peer.setLocalDescription(offer)

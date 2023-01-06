@@ -3,11 +3,19 @@
 
   let msg = "";
 
+  let messages: Array<string> = [];
+
   let webrtc: RTCPeerConnection;
   let dataChannel: RTCDataChannel;
 
   async function createConnection() {
     [webrtc, dataChannel] = await createoutboundconnection();
+    dataChannel.onmessage = (e) => {
+      let data = e.data;
+      // prepend datetime to the data
+      data = `${new Date().toLocaleTimeString()}: ${data}`;
+      messages = [...messages, data];
+    };
   }
 
   function handleSubmit() {
@@ -21,7 +29,11 @@
   <input type="text" placeholder="message to the backend" bind:value={msg} />
   <button on:click={handleSubmit}>Submit</button>
   <button on:click={createConnection}>Create Connection</button>
-  <p>When you are done, click the "Next" button.</p>
+  <ul>
+    {#each messages as message}
+      <li>{message}</li>
+    {/each}
+  </ul>
 </developer>
 
 <style>

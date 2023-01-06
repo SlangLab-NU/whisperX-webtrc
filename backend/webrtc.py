@@ -5,9 +5,13 @@ import uuid
 import os
 import inspect
 from pprint import pprint
+import inspect
+import asyncio
+from syncer import sync
 
 pcs = set()
 
+webrtcdatachannel = None
 
 async def offer(sdp, type):
     offer = RTCSessionDescription(sdp, type)
@@ -16,7 +20,9 @@ async def offer(sdp, type):
     pcs.add(pc)
 
     @pc.on("datachannel")
-    def on_datachannel(channel):
+    async def on_datachannel(channel):
+        global webrtcdatachannel
+        webrtcdatachannel = channel
         @channel.on("message")
         def on_message(message):
             channel.send(message)
@@ -33,7 +39,6 @@ async def offer(sdp, type):
 
     @pc.on("track")
     async def on_track(track: MediaStreamTrack):
-        pprint(dir(track))
         print("Track %s received, state %s", track.kind, track.readyState)
 
         if track.kind == "audio":
