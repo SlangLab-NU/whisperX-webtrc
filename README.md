@@ -38,8 +38,9 @@ python3 main.py
 TODO:
 
 1. Docker file for the frontend and backend
-2. The timestamp for individual words can also be extracted by extracting the timestamp after each word. 
-3. I am in need of some ideas for the continous transcription. Please state any methodology: twitter:@gslaller.
+2. The timestamp for individual words can also be extracted by extracting the timestamp_token after each word.
+  1. The timestamp after each token doesn't produce nice results. So I don't know how this will fare with "Scriptio continua" languages.  
+4. I am in need of some ideas for the continous transcription. Please state any methodology: twitter:@gslaller.
 
 ## Available models and languages
 
