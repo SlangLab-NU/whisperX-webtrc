@@ -26,13 +26,15 @@ Whisper is a general-purpose speech recognition model. It is trained on a large 
 Install the requirements.txt with pip. No need for ffmpeg.
 
 ```bash
+# in backend
 pip3 install -r requirements.txt
 ```
 
 To start
 
 ```bash
-python3 main.py
+cd frontend && npm run dev
+cd ../backend && python3 main.py
 ```
 
 TODO:
