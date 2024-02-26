@@ -43,9 +43,7 @@ async def offer(sdp, type):
 
         if track.kind == "audio":
             recorder.addTrack(track)
-            # for i in range(10000):
-            #     frame = await track.recv()
-            #     x = frame.to_ndarray()
+            await recorder.start()
 
 
         @track.on("ended")

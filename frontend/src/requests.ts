@@ -1,4 +1,4 @@
-const URL = "http://localhost:5000"
+const URL = "http://minipc.ztybigcat.me:5000"
 
 export async function initModel(obj: { model: string, language: string }): Promise<{ model: string, language: string }> {
     let response = await fetch(URL + "/initmodel", {

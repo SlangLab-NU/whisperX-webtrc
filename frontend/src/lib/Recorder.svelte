@@ -17,9 +17,9 @@
 
       let audio = document.querySelector("audio");
       audio.srcObject = stream;
-      webrtc = await createoutboundconnection(stream);
+      [webrtc, dataChannel] = await createoutboundconnection(stream);
 
-      dataChannel = webrtc.createDataChannel("upstream", { ordered: true });
+      //dataChannel = webrtc.createDataChannel("upstream", { ordered: true });
       dataChannel.onopen = () => {
         dataChannel.onmessage = (event) => {
           console.log("We recieved a message: ", event.data);

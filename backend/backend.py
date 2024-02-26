@@ -1,7 +1,7 @@
 from pprint import pprint
 from fastapi import FastAPI, Body, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import whisper
+import whisperx
 import webrtc
 import uvicorn
 import asyncio
@@ -13,10 +13,12 @@ app = FastAPI()
 
 origins_allowed = [
     "http://localhost:5173",
+    "http://minipc.ztybigcat.me:5173"
 ]
 
 model_name = "tiny"
-model = whisper.load_model(model_name)
+device = "cuda"
+model = whisperx.load_model(model_name, device)
 preffered_lang = "en"
 
 
@@ -39,7 +41,7 @@ async def initmodel(item: dict = Body(...)):
     model_name_temp = item["model"]
     if model_name_temp != model_name:
         model_name = model_name_temp
-        model = whisper.load_model(model_name)
+        model = whisperx.load_model(model_name, device)
     preffered_lang = item["language"]
     return {"model": model_name, "language": preffered_lang}
 
@@ -66,6 +68,7 @@ async def Transribe(filename, language, webrtcdatachannel):
         await channel._RTCDataChannel__transport._transmit()
     
     def on_message(message):
+        print(message)
         webrtcdatachannel.send(message)
         asyncio.get_event_loop().run_until_complete(flush(webrtcdatachannel))
 

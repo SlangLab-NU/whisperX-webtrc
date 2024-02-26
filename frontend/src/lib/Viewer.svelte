@@ -5,7 +5,10 @@
 
   let ans: any[] = [];
   async function makeInference() {
-    let { filename } = get(connection);
+    let { filename, webrtc } = get(connection);
+    if (webrtc) {
+      filename = "webrtc.wav"
+    }
     if (filename !== "") {
       let res = await infer(filename);
       ans = res;
