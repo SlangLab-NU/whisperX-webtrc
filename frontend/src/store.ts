@@ -31,5 +31,6 @@ let call = (time) => setTimeout(() => {
         }
     })
 }, time);
+export const ans = writable([]);
 
 call(0);

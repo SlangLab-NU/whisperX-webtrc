@@ -4,6 +4,7 @@
   import { createoutboundconnection } from "../webrtc";
   import { upload } from "../requests";
   import Developer from "./Developer.svelte";
+  import { ans } from "../store";
 
   let webrtc: RTCPeerConnection;
   let dataChannel: RTCDataChannel;
@@ -19,10 +20,31 @@
       audio.srcObject = stream;
       [webrtc, dataChannel] = await createoutboundconnection(stream);
 
-      //dataChannel = webrtc.createDataChannel("upstream", { ordered: true });
       dataChannel.onopen = () => {
         dataChannel.onmessage = (event) => {
-          console.log("We recieved a message: ", event.data);
+          console.log("We received a message: ", event.data);
+          const messageObject = JSON.parse(event.data);
+          const threshold = 0.5;
+
+          ans.update((currentMessages) => {
+            if (currentMessages.length > 0) {
+              const lastCurrentMessage =
+                currentMessages[currentMessages.length - 1];
+
+              if (messageObject.start < lastCurrentMessage.start) {
+                // Discard the messageObject if it starts earlier than the last current message
+                return currentMessages;
+              } else if (
+                Math.abs(messageObject.start - lastCurrentMessage.start) <
+                threshold
+              ) {
+                // Consider the messages the same if they start within the threshold
+                return [...currentMessages.slice(0, -1), messageObject];
+              }
+            }
+            // Add the new message if there are no previous messages or if it starts later
+            return [...currentMessages, messageObject];
+          });
         };
       };
       updateState({ webrtc: true });

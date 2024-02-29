@@ -20,7 +20,8 @@ model_name = "tiny"
 device = "cuda"
 model = whisperx.load_model(model_name, device)
 preffered_lang = "en"
-
+# a dictionary that stores the latest time where the last start time is
+lastest_times = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -61,18 +62,24 @@ async def upload(file: UploadFile = File(...)):
     
     return {"filename": filename}
 
-async def Transribe(filename, language, webrtcdatachannel):
-
+async def Transcribe(filename, language, webrtcdatachannel):
     async def flush(channel):
         await channel._RTCDataChannel__transport._data_channel_flush()
         await channel._RTCDataChannel__transport._transmit()
-    
+
     def on_message(message):
         print(message)
         webrtcdatachannel.send(message)
         asyncio.get_event_loop().run_until_complete(flush(webrtcdatachannel))
 
-    result = model.transcribe("data/"+filename, language=language, webrtcsend_method=on_message)
+    lastest_times[filename] = 0
+    while webrtcdatachannel and webrtcdatachannel.readyState == "open":
+        result = model.transcribe("data/" + filename, language=language, start_time=lastest_times[filename], webrtcsend_method=on_message)
+        if result and len(result['segments']) > 1:
+            # Update start_time to be the start time of the latest phrase
+            lastest_times[filename] = result['segments'][-1]["start"]
+        await asyncio.sleep(1)  # Add a short delay to prevent 
+
 
 @app.post("/infer")
 async def infer(item: dict = Body(...)):
@@ -82,7 +89,7 @@ async def infer(item: dict = Body(...)):
     else:
         language = preffered_lang
 
-    asyncio.create_task(Transribe(filename, language, webrtc.webrtcdatachannel))
+    asyncio.create_task(Transcribe(filename, language, webrtc.webrtcdatachannel))
     return []
 
 if __name__ == "__main__":

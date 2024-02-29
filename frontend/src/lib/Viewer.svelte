@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { get } from "svelte/store";
+  import { get, writable} from "svelte/store";
   import { infer } from "../requests";
   import { connection } from "../store";
+  import {ans} from "../store"
 
-  let ans: any[] = [];
+
   async function makeInference() {
     let { filename, webrtc } = get(connection);
     if (webrtc) {
@@ -11,7 +12,6 @@
     }
     if (filename !== "") {
       let res = await infer(filename);
-      ans = res;
     }
   }
 </script>
@@ -19,7 +19,7 @@
 <main>
   <button on:click={makeInference}>Make Inference</button>
   <ul>
-    {#each ans as item}
+    {#each $ans as item}
       <li class="grid">
         <span class="start_time">{Math.round(100 * item.start) / 100}</span>
         <span class="end_time">{Math.round(100 * item.end) / 100}</span>
