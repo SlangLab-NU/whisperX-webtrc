@@ -5,13 +5,11 @@ import whisperx
 import webrtc
 import uvicorn
 import asyncio
+import os
 
 app = FastAPI()
 
-origins_allowed = [
-    "http://localhost:5173",
-    "http://minipc.ztybigcat.me:5173"
-]
+origins_allowed = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 device = "cuda"
 sessions = {}
