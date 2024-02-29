@@ -6,12 +6,9 @@
 
 
   async function makeInference() {
-    let { filename, webrtc } = get(connection);
-    if (webrtc) {
-      filename = "webrtc.wav"
-    }
-    if (filename !== "") {
-      let res = await infer(filename);
+    let { token } = get(connection);
+    if (token) {
+      let res = await infer(token);
     }
   }
 </script>

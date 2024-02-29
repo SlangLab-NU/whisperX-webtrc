@@ -2,7 +2,6 @@
   import { connection, updateState } from "../store";
   import { get } from "svelte/store";
   import { createoutboundconnection } from "../webrtc";
-  import { upload } from "../requests";
   import Developer from "./Developer.svelte";
   import { ans } from "../store";
 
@@ -18,7 +17,10 @@
 
       let audio = document.querySelector("audio");
       audio.srcObject = stream;
-      [webrtc, dataChannel] = await createoutboundconnection(stream);
+      [webrtc, dataChannel] = await createoutboundconnection(
+        get(connection).token,
+        stream,
+      );
 
       dataChannel.onopen = () => {
         dataChannel.onmessage = (event) => {
@@ -31,15 +33,15 @@
               const lastCurrentMessage =
                 currentMessages[currentMessages.length - 1];
 
-              if (messageObject.start < lastCurrentMessage.start) {
-                // Discard the messageObject if it starts earlier than the last current message
-                return currentMessages;
-              } else if (
+              if (
                 Math.abs(messageObject.start - lastCurrentMessage.start) <
                 threshold
               ) {
                 // Consider the messages the same if they start within the threshold
                 return [...currentMessages.slice(0, -1), messageObject];
+              } else if (messageObject.start < lastCurrentMessage.start) {
+                // Discard the messageObject if it starts earlier than the last current message
+                return currentMessages;
               }
             }
             // Add the new message if there are no previous messages or if it starts later
@@ -51,59 +53,27 @@
     }
   }
 
-  let filename: string;
-
   function handleStop() {
     webrtc.close();
     stream.getTracks().forEach((track) => track.stop());
     let audio = document.querySelector("audio");
     audio.srcObject = null;
+    ans.set([]);
   }
-
-  async function handleDrop(event: DragEvent) {
-    event.preventDefault();
-    let file = event.dataTransfer.files[0];
-    filename = await upload(file);
-    updateState({ filename });
-  }
-
-  let content: "File" | "Mic" = "Mic";
 </script>
 
 <main>
-  <button
-    class={content === "File" ? "outline" : ""}
-    on:click={() => (content = "File")}>Upload File</button
-  >
-  <content>
-    {#if content === "File"}
-      <dropzone
-        on:drop={handleDrop}
-        on:dragstart|preventDefault={() => {}}
-        on:dragover|preventDefault={() => {}}
-      >
-        {#if filename}
-          {filename}
-        {:else}
-          Drop a file here
-        {/if}
-      </dropzone>
-    {:else}
-      <subline>
-        <button on:click={handleStart} class="start">Start</button>
-        <button on:click={handleStop} class="stop">Stop</button>
-        <audio controls autoplay>
-          Your browser does not support the audio element.
-        </audio>
-      </subline>
-    {/if}
-  </content>
-  <button
-    class={content === "Mic" ? "outline" : ""}
-    on:click={() => (content = "Mic")}>Microphone</button
-  >
+  <subline>
+    <button on:click={handleStart} class="start" disabled={$connection.token === ''}>Start</button>
+    <button on:click={handleStop} class="stop" disabled={$connection.token === ''}>Stop</button>
+ 
+    <audio controls autoplay>
+      Your browser does not support the audio element.
+    </audio>
+  </subline>
 </main>
-<Developer />
+
+<!-- <Developer /> -->
 
 <style>
   main {
@@ -119,26 +89,6 @@
 
   button {
     background-color: white;
-  }
-
-  content {
-    flex-grow: 1;
-    border-radius: 0.5rem;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-  }
-
-  .outline {
-    outline: 2px solid #3f3fb3;
-  }
-
-  dropzone {
-    outline: 2px dashed #3f3fb3;
-    padding: 1rem;
-    width: 100%;
-    border-radius: 0.5rem;
-    text-align: center;
   }
 
   subline {

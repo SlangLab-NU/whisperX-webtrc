@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createoutboundconnection } from "../webrtc";
+  import {connection} from "../store"
+  import { get } from "svelte/store";
 
   let msg = "";
 
@@ -9,7 +11,7 @@
   let dataChannel: RTCDataChannel;
 
   async function createConnection() {
-    [webrtc, dataChannel] = await createoutboundconnection();
+    [webrtc, dataChannel] = await createoutboundconnection(get(connection).token);
     dataChannel.onmessage = (e) => {
       let data = e.data;
       // prepend datetime to the data

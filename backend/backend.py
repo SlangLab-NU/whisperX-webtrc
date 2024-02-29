@@ -1,13 +1,10 @@
-from pprint import pprint
-from fastapi import FastAPI, Body, File, UploadFile
+from fastapi import FastAPI, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from uuid import uuid4
 import whisperx
 import webrtc
 import uvicorn
 import asyncio
-import time
-import nest_asyncio
-nest_asyncio.apply()
 
 app = FastAPI()
 
@@ -16,12 +13,8 @@ origins_allowed = [
     "http://minipc.ztybigcat.me:5173"
 ]
 
-model_name = "tiny"
 device = "cuda"
-model = whisperx.load_model(model_name, device)
-preffered_lang = "en"
-# a dictionary that stores the latest time where the last start time is
-lastest_times = {}
+sessions = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,65 +25,80 @@ app.add_middleware(
 )
 
 @app.get("/ping")
-async def main():
+async def ping():
     return {"ping": "pong"}
 
-@app.post("/initmodel")
-async def initmodel(item: dict = Body(...)):
-    global model_name, preffered_lang, model
-    
-    model_name_temp = item["model"]
-    if model_name_temp != model_name:
-        model_name = model_name_temp
-        model = whisperx.load_model(model_name, device)
-    preffered_lang = item["language"]
-    return {"model": model_name, "language": preffered_lang}
+@app.post("/init")
+async def init(item: dict = Body(...)):
+    user_id = item["user_id"]
+    model = item["model"]
+    language = item.get("language", "en") 
+    try:
+        model_instance = whisperx.load_model(model, device)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to load model: {str(e)}")
+
+    token = str(uuid4())
+    sessions[token] = {
+        "user_id": user_id,
+        "model": model,
+        "language": language,
+        "filename": f"{token}.wav",
+        "model_instance": model_instance,
+        "latest_transcription_time": 0,
+        "job": False
+    }
+    return {"token": token}
 
 @app.post("/offer")
 async def offer(item: dict = Body(...)):
+    token = item["token"]
     sdp = item["sdp"]
     type = item["type"]
-    resp = await webrtc.offer(sdp, type) 
+    if token not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    session = sessions[token]
+    # Define the callback function
+    def on_data_channel_created(channel):
+        session["webrtcdatachannel"] = channel
+    resp = await webrtc.offer(sdp, type, session["filename"], on_data_channel_created)
     return resp
 
-@app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    filename = file.filename
-    with open("data/"+filename, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
-    
-    return {"filename": filename}
-
-async def Transcribe(filename, language, webrtcdatachannel):
-    async def flush(channel):
-        await channel._RTCDataChannel__transport._data_channel_flush()
-        await channel._RTCDataChannel__transport._transmit()
-
+async def transcribe(token: str):
+    session = sessions[token]
     def on_message(message):
-        print(message)
-        webrtcdatachannel.send(message)
-        asyncio.get_event_loop().run_until_complete(flush(webrtcdatachannel))
+        #print(message)
+        session["webrtcdatachannel"].send(message)
 
-    lastest_times[filename] = 0
-    while webrtcdatachannel and webrtcdatachannel.readyState == "open":
-        result = model.transcribe("data/" + filename, language=language, start_time=lastest_times[filename], webrtcsend_method=on_message)
+    while session["webrtcdatachannel"] and session["webrtcdatachannel"].readyState == "open":
+        if session["latest_transcription_time"] > 3600:
+            break
+        result = session["model_instance"].transcribe(
+            "data/" + session["filename"],
+            language=session["language"],
+            webrtcsend_method=on_message,
+            start_time = session["latest_transcription_time"]
+        )
         if result and len(result['segments']) > 1:
-            # Update start_time to be the start time of the latest phrase
-            lastest_times[filename] = result['segments'][-1]["start"]
-        await asyncio.sleep(1)  # Add a short delay to prevent 
+            # Update the session with the latest transcription result
+            session["latest_transcription_time"] = result['segments'][-1]["start"]
+        await asyncio.sleep(1)
+    session["job"] = False
+    session["latest_transcription_time"] = 0
 
 
 @app.post("/infer")
 async def infer(item: dict = Body(...)):
-    filename = item["filename"]
-    if model_name.endswith(".en"):
-        language = "en"
+    token = item["token"]
+    if token not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if sessions[token]["job"]:
+        raise HTTPException(status_code=409, detail="Job Already Exist")
     else:
-        language = preffered_lang
-
-    asyncio.create_task(Transcribe(filename, language, webrtc.webrtcdatachannel))
-    return []
+        sessions[token]["job"] = True
+    asyncio.create_task(transcribe(token))
+    return {"message": "Transcription started"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)

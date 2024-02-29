@@ -7,6 +7,7 @@ export type conn = {
     webrtc: boolean,
     filename: string,
     language: string,
+    token: string
 }
 
 export const connection = writable<conn>({
@@ -15,6 +16,7 @@ export const connection = writable<conn>({
     model: "tiny",
     filename: "",
     language: "en",
+    token:""
 });
 
 export const updateState = (obj: Partial<conn>) => {

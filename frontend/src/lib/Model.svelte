@@ -8,24 +8,29 @@
   let tempModel = get(connection).model;
   let tempLang = get(connection).language;
 
-  $: shouldFetch =
-    $connection.language !== tempLang || $connection.model !== tempModel;
+  let userInteracted = false;
+
+  $: shouldFetch = !userInteracted ||
+    ($connection.language !== tempLang || $connection.model !== tempModel);
 
   $: langNotSelectable = tempModel.endsWith(".en");
 
   async function handleSubmit() {
-    let { model, language } = await initModel({
+    let {token} = await initModel({
+      user_id: "test",
       model: tempModel,
       language: tempLang,
     });
-    updateState({ model, language });
+    updateState({token});
   }
 
   function handleModelChange(event: Event) {
+    userInteracted = true;
     tempModel = (event.target as HTMLSelectElement).value;
   }
 
   function handleLangChange(event: Event) {
+    userInteracted = true;
     tempLang = (event.target as HTMLSelectElement).value;
   }
 </script>

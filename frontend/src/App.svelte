@@ -21,19 +21,19 @@
 
   <h1>
     <a
-      href="https://github.com/gslaller/whisper-webrtc"
+      href="https://github.com/SlangLab-NU/whisperX-webtrc"
       target="_blank"
       rel="noreferrer"
     >
-      Bolt
+      BoltX
     </a>
     =
     <a
-      href="https://github.com/openai/whisper"
+      href="https://github.com/m-bain/whisperX"
       target="_blank"
       rel="noreferrer"
     >
-      Whisper
+      WhisperX
     </a>
     +
     <a href="https://github.com/aiortc/aiortc" target="_blank" rel="noreferrer">
@@ -41,27 +41,18 @@
     </a>
   </h1>
   <details>
-    <summary>Overview</summary>
+    <summary>Usage</summary>
     <p class="padding_left">
-      This project is a derivate of the openai's whisper project. The audio
-      chunks are transmitted in realtime with webrtc and the model is extended
-      so it can cache the previous computed tokens, hence making the application
-      more efficient and viable for real time applicationsviable for real time
-      inference. Docker image is also available.
+      This project is an improvement over the original <a href="https://github.com/gslaller/whisper-webrtc">Bolt</a> project. It integrates
+      WhisperX and use time stamp and sliding window to achieve real time transcription. To use this app, choose your model parameters and click "Set".
+      Open the developer menu, click on start, and wait until "connection state changed to connected" appears in the console. Finally after you are connected click on make 
+      inference to start transcription. 
     </p>
   </details>
 
   <Model />
   <Recorder />
   <Viewer />
-  <p class="twitterlink">
-    <a href="https://twitter.com/gslaller" target="_blank" rel="noreferrer"
-      >twitter:@gslaller</a
-    >
-    {#if !$connection.backendAvailable}
-      <span class="red">CANNOT REACH BACKEND</span>
-    {/if}
-  </p>
 </main>
 
 <style>
