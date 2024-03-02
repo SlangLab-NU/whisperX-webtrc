@@ -17,7 +17,7 @@
 
   async function handleSubmit() {
     let {token} = await initModel({
-      user_id: "test",
+      user_id: "",
       model: tempModel,
       language: tempLang,
     });

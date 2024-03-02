@@ -1,4 +1,4 @@
-const URL = `/api`;
+const URL = `https://api.ztybigcat.me/transcription`;
 
 export async function initModel(obj: { user_id: string, model: string, language: string }): Promise<{ token: string }> {
     let response = await fetch(URL + "/init", {
