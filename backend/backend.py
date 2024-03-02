@@ -25,11 +25,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/ping")
+@router.get("/ping")
 async def ping():
     return {"ping": "pong"}
 
-@app.post("/init")
+@router.post("/init")
 async def init(item: dict = Body(...)):
     user_id = item["user_id"]
     model = item["model"]
@@ -54,7 +54,7 @@ async def init(item: dict = Body(...)):
     }
     return {"token": token}
 
-@app.post("/offer")
+@router.post("/offer")
 async def offer(item: dict = Body(...)):
     token = item["token"]
     sdp = item["sdp"]
@@ -92,7 +92,7 @@ async def transcribe(token: str):
     session["latest_transcription_time"] = 0
 
 
-@app.post("/infer")
+@router.post("/infer")
 async def infer(item: dict = Body(...)):
     token = item["token"]
     if token not in sessions:
