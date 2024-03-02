@@ -1,4 +1,4 @@
-const URL = `http://${window.location.hostname}:5000`;
+const URL = `/api`;
 
 export async function initModel(obj: { user_id: string, model: string, language: string }): Promise<{ token: string }> {
     let response = await fetch(URL + "/init", {

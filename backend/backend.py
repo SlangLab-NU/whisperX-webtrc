@@ -5,11 +5,13 @@ import whisperx
 import webrtc
 import uvicorn
 import asyncio
-import os
 
 app = FastAPI()
 
-origins_allowed = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+origins_allowed = ["*"]
+
+with open("authorized_users.txt", "r") as file:
+    AUTHORIZED_USERS = set(file.read().splitlines())
 
 device = "cuda"
 sessions = {}
@@ -31,6 +33,9 @@ async def init(item: dict = Body(...)):
     user_id = item["user_id"]
     model = item["model"]
     language = item.get("language", "en") 
+
+    if user_id not in AUTHORIZED_USERS:
+        raise HTTPException(status_code=403, detail="Unauthorized")
     try:
         model_instance = whisperx.load_model(model, device)
     except Exception as e:
@@ -99,4 +104,4 @@ async def infer(item: dict = Body(...)):
     return {"message": "Transcription started"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="127.0.0.1", port=5000)
