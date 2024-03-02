@@ -6,4 +6,5 @@ transformers>=4.19.0
 ffmpeg-python==0.2.0
 aiortc
 fastapi
+uvicorn
 whisperx @ git+https://github.com/m-bain/whisperx.git@main
