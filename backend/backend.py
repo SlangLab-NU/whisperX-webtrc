@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body, HTTPException
+from fastapi import FastAPI, APIRouter, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
 import whisperx
@@ -7,6 +7,7 @@ import uvicorn
 import asyncio
 
 app = FastAPI()
+router = APIRouter(prefix="/transcription")
 
 origins_allowed = ["*"]
 
@@ -102,6 +103,8 @@ async def infer(item: dict = Body(...)):
         sessions[token]["job"] = True
     asyncio.create_task(transcribe(token))
     return {"message": "Transcription started"}
+
+app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5000)
