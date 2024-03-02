@@ -46,7 +46,7 @@
       This project is an improvement over the original <a href="https://github.com/gslaller/whisper-webrtc">Bolt</a> project. It integrates
       WhisperX and use time stamp and sliding window to achieve real time transcription. To use this app, choose your model parameters and click "Set".
       Open the developer menu, click on start, and wait until "connection state changed to connected" appears in the console. Finally after you are connected click on make 
-      inference to start transcription. 
+      inference to start transcription.  
     </p>
   </details>
 

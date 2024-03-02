@@ -1,25 +1,10 @@
-# Bolt
+# BoltX
 
-This browser based project let's the whisper model transcribe incoming audio in realtime.
+This browser based project let's the whisperX model transcribe incoming audio in realtime.
 
 > Translation is not possible(maybe added later)
 
 ![Screenshot](assets/screenshot.png)
-
-## Openai's Whisper
-
-[[Blog]](https://openai.com/blog/whisper)
-[[Paper]](https://arxiv.org/abs/2212.04356)
-[[Model card]](model-card.md)
-[[Colab example]](https://colab.research.google.com/github/openai/whisper/blob/master/notebooks/LibriSpeech.ipynb)
-
-Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multi-task model that can perform multilingual speech recognition as well as speech translation and language identification.
-
-## Approach
-
-1. Use the webrtc api to transmit audio data in realtime to the backend.
-2. Extend the model, so it caches the previous outputs, hence mitigating duplicate computation.
-3. Make realtime transcription happen.
 
 ## Setup
 
@@ -29,6 +14,7 @@ Install the requirements.txt with pip. No need for ffmpeg.
 # in backend
 pip3 install -r requirements.txt
 ```
+You may also need to install ffmpeg, rust etc. Follow openAI instructions here https://github.com/openai/whisper#setup.
 
 To start
 
