@@ -2,12 +2,13 @@
   import { connection, updateState } from "../store";
   import { get } from "svelte/store";
   import { createoutboundconnection } from "../webrtc";
-  import Developer from "./Developer.svelte";
   import { ans } from "../store";
 
   let webrtc: RTCPeerConnection;
   let dataChannel: RTCDataChannel;
   let stream: MediaStream;
+  let recordingStartTime: Date | null = null;
+  let elapsedTime: string = '00:00';
 
   async function handleStart() {
     if (get(connection).backendAvailable) {
@@ -15,8 +16,6 @@
         audio: true,
       });
 
-      let audio = document.querySelector("audio");
-      audio.srcObject = stream;
       [webrtc, dataChannel] = await createoutboundconnection(
         get(connection).token,
         stream,
@@ -50,15 +49,28 @@
         };
       };
       updateState({ webrtc: true });
+      recordingStartTime = new Date();
+      updateElapsedTime();
     }
   }
 
   function handleStop() {
     webrtc.close();
     stream.getTracks().forEach((track) => track.stop());
-    let audio = document.querySelector("audio");
-    audio.srcObject = null;
     ans.set([]);
+    recordingStartTime = null;
+    elapsedTime = '00:00';
+  }
+
+  function updateElapsedTime() {
+    if (recordingStartTime) {
+      const now = new Date();
+      const diff = now.getTime() - recordingStartTime.getTime();
+      const seconds = Math.floor(diff / 1000) % 60;
+      const minutes = Math.floor(diff / 60000);
+      elapsedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      setTimeout(updateElapsedTime, 1000);
+    }
   }
 </script>
 
@@ -66,12 +78,10 @@
   <subline>
     <button on:click={handleStart} class="start" disabled={$connection.token === ''}>Start</button>
     <button on:click={handleStop} class="stop" disabled={$connection.token === ''}>Stop</button>
- 
-    <audio controls autoplay>
-      Your browser does not support the audio element.
-    </audio>
+    <span>{elapsedTime}</span>
   </subline>
 </main>
+
 
 <!-- <Developer /> -->
 

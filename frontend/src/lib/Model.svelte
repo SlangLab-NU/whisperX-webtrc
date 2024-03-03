@@ -7,7 +7,7 @@
 
   let tempModel = get(connection).model;
   let tempLang = get(connection).language;
-
+  let userId = ""; // Add a variable for the user ID
   let userInteracted = false;
 
   $: shouldFetch = !userInteracted ||
@@ -17,7 +17,7 @@
 
   async function handleSubmit() {
     let {token} = await initModel({
-      user_id: "",
+      user_id: userId,
       model: tempModel,
       language: tempLang,
     });
@@ -33,11 +33,21 @@
     userInteracted = true;
     tempLang = (event.target as HTMLSelectElement).value;
   }
+  function handleUserIdChange(event: Event) {
+    userId = (event.target as HTMLInputElement).value; // Update the userId variable
+  }
 </script>
 
 <main>
   <h2>Model Parameters:</h2>
   <selectionline>
+    <label for="user-id">User ID:</label>
+    <input
+      type="text"
+      name="user-id"
+      bind:value={userId}
+      on:input={handleUserIdChange}
+    />
     <label for="model">Model:</label>
     <select name="model" on:change={handleModelChange}>
       {#each AvailableModels as model}

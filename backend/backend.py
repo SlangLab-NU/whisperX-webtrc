@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from uuid import uuid4
 import whisperx
 import webrtc
@@ -8,6 +9,11 @@ import asyncio
 
 app = FastAPI()
 router = APIRouter(prefix="/transcription")
+
+class InitItem(BaseModel):
+    user_id: str
+    model: str
+    language: str = "en"
 
 origins_allowed = ["*"]
 
@@ -25,12 +31,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@router.get("/ping")
+@router.get("/ping", summary="Health Check", description="Check if the API is up and running.")
 async def ping():
     return {"ping": "pong"}
 
-@router.post("/init")
-async def init(item: dict = Body(...)):
+@router.post("/init", summary="Initialize Transcription", description="Initialize the transcription service with the given model and language.")
+async def init(item: InitItem = Body(..., description="Initialization parameters")):
     user_id = item["user_id"]
     model = item["model"]
     language = item.get("language", "en") 
