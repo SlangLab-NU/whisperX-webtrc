@@ -7,4 +7,4 @@ ffmpeg-python==0.2.0
 aiortc
 fastapi
 uvicorn
-whisperx @ git+https://github.com/m-bain/whisperx.git@main
+whisperx @ git+https://github.com/SlangLab-NU/whisperX.git@main
