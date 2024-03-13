@@ -1,7 +1,10 @@
+import json
+import sys
+import time
 from fastapi import FastAPI, APIRouter, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
-import whisperx
+import whisper_online
 import webrtc
 import uvicorn
 import asyncio
@@ -14,7 +17,6 @@ origins_allowed = ["*"]
 with open("authorized_users.txt", "r") as file:
     AUTHORIZED_USERS = set(file.read().splitlines())
 
-device = "cuda"
 sessions = {}
 
 app.add_middleware(
@@ -38,8 +40,13 @@ async def init(item: dict = Body(...)):
     if user_id not in AUTHORIZED_USERS:
         raise HTTPException(status_code=403, detail="Unauthorized")
     try:
-        model_instance = whisperx.load_model(model, device)
+        asr = whisper_online.FasterWhisperASR(model_name=model)
+        asr.use_vad()
+        online = whisper_online.OnlineASRProcessor(asr=asr, tokenizer=None, 
+                                                   logfile=sys.stderr,
+                                                   buffer_trimming=("segment", 15))
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=f"Failed to load model: {str(e)}")
 
     token = str(uuid4())
@@ -48,7 +55,7 @@ async def init(item: dict = Body(...)):
         "model": model,
         "language": language,
         "filename": f"{token}.wav",
-        "model_instance": model_instance,
+        "model_instance": online,
         "latest_transcription_time": 0,
         "job": False
     }
@@ -71,23 +78,37 @@ async def offer(item: dict = Body(...)):
 
 async def transcribe(token: str):
     session = sessions[token]
-    def on_message(message):
-        #print(message)
-        session["webrtcdatachannel"].send(message)
-
+    def on_message(o):
+        if o[0] is not None:
+            message = {"start": o[0], "end": o[1], "text": o[2]}
+        else:
+            message = str(o)
+        session["webrtcdatachannel"].send(json.dumps(message))
+    # I do not get this time calculation, just got it from whisper-online
+    min_chunk = 1.0
+    beg = 0
+    start = time.time()-beg
+    end = 0
     while session["webrtcdatachannel"] and session["webrtcdatachannel"].readyState == "open":
         if session["latest_transcription_time"] > 3600:
             break
-        result = session["model_instance"].transcribe(
-            "data/" + session["filename"],
-            language=session["language"],
-            webrtcsend_method=on_message,
-            start_time = session["latest_transcription_time"]
-        )
-        if result and len(result['segments']) > 1:
-            # Update the session with the latest transcription result
-            session["latest_transcription_time"] = result['segments'][-1]["start"]
-        await asyncio.sleep(1)
+        now = time.time() - start
+        if now < end+min_chunk:
+            time.sleep(min_chunk+end-now)
+        end = time.time() - start
+        print("load", beg, end)
+        a = whisper_online.load_audio_chunk("data/"+session["filename"],beg,end)
+        session["model_instance"].insert_audio_chunk(a)
+        try:
+            o = session["model_instance"].process_iter()
+        except AssertionError:
+            print("assertion error",file=sys.stderr)
+            pass
+        else:
+            print(o)
+            on_message(o)
+    
+    session["model_instance"].finish()
     session["job"] = False
     session["latest_transcription_time"] = 0
 

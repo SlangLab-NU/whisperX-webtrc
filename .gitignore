@@ -16,3 +16,5 @@ whisper_models/*
 thinking.py
 temp.py
 *.npy
+backend/authorized_users.txt
+.vscode
