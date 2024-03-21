@@ -6,6 +6,8 @@ This browser based project let's the whisperX model transcribe incoming audio in
 ![Screenshot](assets/screenshot.png)
 
 ## Setup
+We have a guide on how to setup this project on Amazon EC2 instance. See [backend/ec2.md](https://github.com/SlangLab-NU/whisperX-webtrc/blob/main/backend/ec2.md). The following installing instructions applies in general.
+
 Clone this repo, along with the submodules:
 ```
 git clone --recurse-submodules https://github.com/SlangLab-NU/whisperX-webtrc.git
