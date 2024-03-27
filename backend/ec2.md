@@ -9,9 +9,10 @@ It's important to recognize that this guide does not incorporate advanced practi
 For those looking to delve into more advanced deployment strategies and best practices, it's encouraged to seek out additional resources, official documentation from cloud service providers, and contemporary literature on DevOps and cloud engineering.
 
 #### **Preparation**
-1. **Choosing the Right Instance:**
-   - **Requirement:** An instance with an NVIDIA GPU is required for this project. 
+1. **Choosing the Right Instance**
+   - **Requirement:** An instance with an NVIDIA GPU is **required** for this project. 
    - **Recommendation:** We recommend using the `g4dn.xlarge` instance, which includes a T4 GPU. This should suffice for most needs. However, you should assess your model's VRAM requirements and choose an appropriate GPU instance accordingly.
+   - **Budgeting and pricing estimation** (for the recommended instance): **under 0.6 USD per hour** (i. e. under 14.4 USD per 24 hours) for a regular "on-demand" offer – that is, before any discounts.  [Check the up-to-date prices](https://aws.amazon.com/ec2/pricing/on-demand/). See the image showing the AWS's pricing-filter config.
    - **Deep Learning AMI:** For ease of setup, use the Amazon Deep Learning AMI, which comes pre-configured with the CUDA environment, eliminating the need for manual CUDA installation. If you opt for a different setup, follow the NVIDIA official guide to install CUDA.
      - **AMI Link:** [Amazon Machine Learning AMIs](https://aws.amazon.com/machine-learning/amis/)
 
