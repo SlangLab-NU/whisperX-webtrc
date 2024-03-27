@@ -6,12 +6,18 @@ This browser based project let's the whisperX model transcribe incoming audio in
 ![Screenshot](assets/screenshot.png)
 
 ## Setup
-We have a guide on how to setup this project on Amazon EC2 instance. See [backend/ec2.md](https://github.com/SlangLab-NU/whisperX-webtrc/blob/main/backend/ec2.md). The following installing instructions applies in general.
+We have a guide on how to setup this project on Amazon EC2 instance. See [backend/ec2.md](./docs/backend-instance-infra.md). The following installing instructions applies in general.
 
 Clone this repo, along with the submodules:
 ```
-git clone --recurse-submodules https://github.com/SlangLab-NU/whisperX-webtrc.git
+git clone --recurse-submodules https://github.com/SlangLab-NU/whisperX-webtrc.git  
 ```
+
+Or via SSH:  
+```
+git clone --recurse-submodules git@github.com:SlangLab-NU/whisperX-webtrc.git  
+```
+
 You need ffmpeg to run whisperX:
 ```bash
 sudo apt update && sudo apt install ffmpeg
