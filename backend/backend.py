@@ -5,6 +5,7 @@ import whisperx
 import webrtc
 import uvicorn
 import asyncio
+import aiofiles.os
 
 app = FastAPI()
 router = APIRouter(prefix="/transcription")
@@ -91,16 +92,39 @@ async def transcribe(token: str):
     session["job"] = False
     session["latest_transcription_time"] = 0
 
+async def async_file_exists(path: str) -> bool:
+    return await aiofiles.os.path.exists(path)
+
+async def wait_for_file(path: str, timeout: int = 5, interval: int = 1, additional_delay: int = 3):
+    """
+    Wait for the file to exist up to `timeout` seconds.
+    Check every `interval` seconds.
+    Once the file exists, wait an additional `additional_delay` seconds.
+    """
+    total_wait = 0
+    while total_wait < timeout:
+        if await async_file_exists(path):
+            await asyncio.sleep(additional_delay)  # Wait additional seconds after file is detected
+            return True
+        await asyncio.sleep(interval)
+        total_wait += interval
+    return False
 
 @router.post("/infer")
 async def infer(item: dict = Body(...)):
     token = item["token"]
     if token not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
-    if sessions[token]["job"]:
-        raise HTTPException(status_code=409, detail="Job Already Exist")
-    else:
-        sessions[token]["job"] = True
+    
+    if sessions[token].get("job"):
+        raise HTTPException(status_code=409, detail="Job Already Exists")
+
+    audio_file_path = f"data/{token}.wav"
+    file_ready = await wait_for_file(audio_file_path)
+    if not file_ready:
+        raise HTTPException(status_code=408, detail="Audio file not ready within expected time")
+
+    sessions[token]["job"] = True
     asyncio.create_task(transcribe(token))
     return {"message": "Transcription started"}
 
