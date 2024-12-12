@@ -17,7 +17,8 @@ with open("authorized_users.txt", "r") as file:
 
 device = "cuda"
 sessions = {}
-
+# global model
+model_instance = None
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins_allowed,
@@ -39,7 +40,8 @@ async def init(item: dict = Body(...)):
     if user_id not in AUTHORIZED_USERS:
         raise HTTPException(status_code=403, detail="Unauthorized")
     try:
-        model_instance = whisperx.load_model(model, device)
+        if not model_instance:
+            model_instance = whisperx.load_model(model, device)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to load model: {str(e)}")
 
