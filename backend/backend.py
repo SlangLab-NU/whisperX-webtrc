@@ -33,6 +33,7 @@ async def ping():
 
 @router.post("/init")
 async def init(item: dict = Body(...)):
+    global model_instance
     user_id = item["user_id"]
     model = item["model"]
     language = item.get("language", "en") 
@@ -43,6 +44,7 @@ async def init(item: dict = Body(...)):
         if not model_instance:
             model_instance = whisperx.load_model(model, device)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=f"Failed to load model: {str(e)}")
 
     token = str(uuid4())
